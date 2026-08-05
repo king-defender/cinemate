@@ -25,15 +25,34 @@ export function LoginForm({
     setLoading(true);
     setError(null);
     const supabase = createClient();
-    const { error: err } = await supabase.auth.signInWithPassword({
+    const { data, error: err } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    setLoading(false);
     if (err) {
+      setLoading(false);
       setError(err.message);
       return;
     }
+    // Finish profile if signup created Auth but never wrote the app User row
+    if (data.session) {
+      const meta = data.user?.user_metadata ?? {};
+      const username =
+        typeof meta.username === "string" && meta.username.length >= 3
+          ? meta.username
+          : `user_${data.user!.id.slice(0, 8)}`;
+      const phone = typeof meta.phone === "string" ? meta.phone : undefined;
+      await fetch("/api/auth/complete-profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${data.session.access_token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify({ username, ...(phone && { phone }) }),
+      });
+    }
+    setLoading(false);
     router.push(next);
     router.refresh();
   }
@@ -62,9 +81,14 @@ export function LoginForm({
       return;
     }
     const username = `guest_${data.user.id.slice(0, 6)}`;
+    const token = data.session?.access_token;
     await fetch("/api/auth/complete-profile", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      credentials: "include",
       body: JSON.stringify({ username }),
     });
     setLoading(false);

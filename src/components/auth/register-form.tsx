@@ -55,9 +55,16 @@ export function RegisterForm() {
 
     // Email confirmation ON → no session yet; profile is created after verify/login.
     if (data.session) {
+      // Ensure cookie storage is flushed before / after we also send the JWT.
+      await supabase.auth.getSession();
+
       const res = await fetch("/api/auth/complete-profile", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${data.session.access_token}`,
+        },
+        credentials: "include",
         body: JSON.stringify({
           username: parsed.data.username,
           phone: parsed.data.phone,
@@ -66,7 +73,10 @@ export function RegisterForm() {
       if (!res.ok) {
         const body = await res.json().catch(() => null);
         setLoading(false);
-        setError(body?.error?.message ?? "Could not save profile");
+        setError(
+          body?.error?.message ??
+            `Could not save profile (${res.status}). Try logging in.`,
+        );
         return;
       }
       setLoading(false);
