@@ -16,18 +16,26 @@ export const getAppUser = cache(async () => {
   const authUser = await getSessionUser();
   if (!authUser) return null;
 
-  let appUser = await prisma.user.findUnique({
-    where: { id: authUser.id },
-  });
+  try {
+    let appUser = await prisma.user.findUnique({
+      where: { id: authUser.id },
+    });
 
-  if (!appUser) {
-    appUser = await ensureAppUser(authUser);
+    if (!appUser) {
+      appUser = await ensureAppUser(authUser);
+    }
+
+    return {
+      ...appUser,
+      authEmailVerified: Boolean(authUser.email_confirmed_at),
+    };
+  } catch (err) {
+    // Missing/unreachable DATABASE_URL on Vercel otherwise 500s the whole page
+    console.error("[getAppUser] database error:", err);
+    throw new Error(
+      "Database unavailable. Check DATABASE_URL / DIRECT_URL on Vercel (use Supabase pooler).",
+    );
   }
-
-  return {
-    ...appUser,
-    authEmailVerified: Boolean(authUser.email_confirmed_at),
-  };
 });
 
 export function canHostOrBuddy(user: {
