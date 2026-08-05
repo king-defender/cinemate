@@ -87,48 +87,66 @@ export function BuddyClient({ username }: { username: string }) {
   return (
     <>
       <AppNav username={username} />
-      <main className="mx-auto max-w-3xl flex-1 px-4 py-12">
-        <h1 className="font-display text-4xl tracking-wide text-cream">
-          Movie buddy
-        </h1>
-        <p className="mt-2 text-cream/55">
-          Post a request or pick someone looking for a watch partner.
-        </p>
+      <main className="relative mx-auto w-full max-w-[1100px] flex-1 px-5 py-10 md:px-8">
+        <div
+          className="ambient-orb left-[-5%] top-0 h-64 w-64 bg-mint/15"
+          aria-hidden
+        />
 
-        <form onSubmit={createRequest} className="mt-8 flex flex-wrap gap-2">
+        <header className="relative max-w-2xl">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-mint">
+            Find your seatmate
+          </p>
+          <h1 className="mt-3 font-display text-4xl font-extrabold tracking-tight md:text-5xl">
+            Looking for someone
+            <br />
+            <span className="text-mist">to watch with?</span>
+          </h1>
+          <p className="mt-4 max-w-lg text-mist">
+            Drop what you&apos;re craving — genre, vibe, time. Match, open a
+            room, and the night starts.
+          </p>
+        </header>
+
+        <form
+          onSubmit={createRequest}
+          className="glass-card relative mt-10 flex flex-col gap-3 rounded-[1.5rem] p-3 sm:flex-row sm:items-center"
+        >
           <input
             value={tags}
             onChange={(e) => setTags(e.target.value)}
-            placeholder="Tags: horror, evenings, anime…"
-            className="min-w-[200px] flex-1 border border-cream/15 bg-ink-900 px-3 py-2 text-sm text-cream focus:border-amber-500/50 focus:outline-none"
+            placeholder="horror · rainy nights · anime · first watch…"
+            className="min-w-0 flex-1 rounded-xl border-0 bg-transparent px-4 py-3 text-sm text-pearl placeholder:text-mist/50 focus:outline-none"
           />
           <button
             type="submit"
-            className="bg-amber-500 px-4 py-2 text-sm font-medium text-ink-950 hover:bg-amber-400"
+            className="btn-cinema shrink-0 rounded-full px-6 py-3 text-sm"
           >
             Post request
           </button>
         </form>
-        {error && <p className="mt-2 text-sm text-red-300">{error}</p>}
+        {error && <p className="mt-3 text-sm text-[#ffb4aa]">{error}</p>}
 
         {mine.filter((m) => m.status === "open").length > 0 && (
-          <section className="mt-10">
-            <h2 className="font-display text-2xl text-cream">Your open request</h2>
-            <ul className="mt-3 space-y-2">
+          <section className="mt-12">
+            <h2 className="font-display text-xl font-bold tracking-tight">
+              Your signal is live
+            </h2>
+            <ul className="mt-4 space-y-2">
               {mine
                 .filter((m) => m.status === "open")
                 .map((m) => (
                   <li
                     key={m.id}
-                    className="flex items-center justify-between border border-cream/10 bg-ink-900/60 px-4 py-3"
+                    className="glass-card flex items-center justify-between gap-3 rounded-2xl border-l-4 border-l-ember px-4 py-3"
                   >
-                    <span className="text-sm text-cream/70">
-                      {m.tags.length ? m.tags.join(" · ") : "No tags"}
+                    <span className="text-sm text-mist">
+                      {m.tags.length ? m.tags.join(" · ") : "Open to anything"}
                     </span>
                     <button
                       type="button"
-                      onClick={() => cancel(m.id)}
-                      className="text-xs text-cream/40 hover:text-red-300"
+                      onClick={() => void cancel(m.id)}
+                      className="text-xs text-mist transition hover:text-[#ffb4aa]"
                     >
                       Cancel
                     </button>
@@ -138,37 +156,65 @@ export function BuddyClient({ username }: { username: string }) {
           </section>
         )}
 
-        <section className="mt-10">
-          <h2 className="font-display text-2xl text-cream">Browse requests</h2>
+        <section className="mt-14">
+          <div className="mb-5 flex items-end justify-between gap-3">
+            <h2 className="font-display text-2xl font-bold tracking-tight">
+              Open seats
+            </h2>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-mist">
+              {open.length} waiting
+            </span>
+          </div>
+
           {open.length === 0 ? (
-            <p className="mt-3 text-sm text-cream/45">No open requests right now.</p>
+            <div className="glass-card rounded-[1.5rem] px-6 py-14 text-center">
+              <p className="font-display text-xl font-bold">Quiet lobby</p>
+              <p className="mt-2 text-sm text-mist">
+                Be the first — post a request above.
+              </p>
+            </div>
           ) : (
-            <ul className="mt-4 space-y-3">
-              {open.map((r) => (
+            <ul className="grid gap-4 sm:grid-cols-2">
+              {open.map((r, i) => (
                 <li
                   key={r.id}
-                  className="border border-cream/10 bg-ink-900/60 p-4"
+                  className="group relative overflow-hidden rounded-[1.35rem] border border-white/[0.07] bg-panel/80 transition hover:-translate-y-1 hover:border-mint/30"
+                  style={{ animationDelay: `${i * 0.05}s` }}
                 >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="font-medium text-cream">
-                        @{r.requester.username}
-                      </p>
-                      {r.requester.bio && (
-                        <p className="mt-1 text-sm text-cream/50">
-                          {r.requester.bio}
-                        </p>
-                      )}
-                      <p className="mt-2 text-xs text-amber-400/80">
-                        {r.tags.join(" · ") || "Open to anything"}
-                      </p>
+                  <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-mint via-mint/40 to-transparent opacity-80" />
+                  <div className="p-5">
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-mint/25 to-panel-lift font-display text-lg font-bold text-mint">
+                        {r.requester.username.slice(0, 1).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold">@{r.requester.username}</p>
+                        {r.requester.bio && (
+                          <p className="mt-1 line-clamp-2 text-sm text-mist">
+                            {r.requester.bio}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {(r.tags.length
+                        ? r.tags
+                        : ["Open to anything"]
+                      ).map((t) => (
+                        <span
+                          key={t}
+                          className="rounded-full bg-mint/10 px-2.5 py-0.5 text-[11px] font-medium text-mint"
+                        >
+                          {t}
+                        </span>
+                      ))}
                     </div>
                     <button
                       type="button"
-                      onClick={() => select(r.id)}
-                      className="shrink-0 bg-amber-500 px-3 py-1.5 text-sm font-medium text-ink-950 hover:bg-amber-400"
+                      onClick={() => void select(r.id)}
+                      className="btn-cinema mt-5 w-full rounded-full py-2.5 text-sm"
                     >
-                      Match
+                      Match & open room
                     </button>
                   </div>
                 </li>

@@ -15,10 +15,21 @@ export async function ensureAppUser(authUser: AuthUser) {
   const existing = await prisma.user.findUnique({ where: { id: authUser.id } });
   if (existing) {
     const emailVerified = Boolean(authUser.email_confirmed_at);
+    const metaPhone =
+      typeof authUser.user_metadata?.phone === "string"
+        ? authUser.user_metadata.phone
+        : null;
+    const patch: { emailVerified?: boolean; phone?: string } = {};
     if (existing.emailVerified !== emailVerified) {
+      patch.emailVerified = emailVerified;
+    }
+    if (!existing.phone && metaPhone) {
+      patch.phone = metaPhone;
+    }
+    if (Object.keys(patch).length > 0) {
       return prisma.user.update({
         where: { id: authUser.id },
-        data: { emailVerified },
+        data: patch,
       });
     }
     return existing;
@@ -30,12 +41,18 @@ export async function ensureAppUser(authUser: AuthUser) {
     username = `${username.slice(0, 18)}_${authUser.id.slice(0, 4)}`;
   }
 
+  const phone =
+    typeof authUser.user_metadata?.phone === "string"
+      ? authUser.user_metadata.phone
+      : null;
+
   return prisma.user.create({
     data: {
       id: authUser.id,
       email: authUser.email ?? `${authUser.id}@guest.cinemate.local`,
       emailVerified: Boolean(authUser.email_confirmed_at),
       username,
+      phone,
       isGuest: authUser.is_anonymous === true,
     },
   });

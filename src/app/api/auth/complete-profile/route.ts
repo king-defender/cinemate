@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     return apiError("VALIDATION", parsed.error.issues[0]?.message ?? "Invalid", 400);
   }
 
-  const { username, bio, favoriteGenres, country } = parsed.data;
+  const { username, phone, bio, favoriteGenres, country } = parsed.data;
 
   const existing = await prisma.user.findUnique({ where: { username } });
   if (existing && existing.id !== authOnly.id) {
@@ -26,6 +26,11 @@ export async function POST(req: NextRequest) {
 
   const emailVerified = Boolean(authOnly.email_confirmed_at);
   const isGuest = authOnly.is_anonymous === true;
+  const metaPhone =
+    typeof authOnly.user_metadata?.phone === "string"
+      ? authOnly.user_metadata.phone
+      : null;
+  const phoneValue = phone ?? metaPhone;
 
   const appUser = await prisma.user.upsert({
     where: { id: authOnly.id },
@@ -34,6 +39,7 @@ export async function POST(req: NextRequest) {
       email: authOnly.email ?? `${authOnly.id}@guest.cinemate.local`,
       emailVerified,
       username,
+      phone: phoneValue,
       bio: bio ?? null,
       favoriteGenres: favoriteGenres ?? [],
       country: country ?? null,
@@ -41,6 +47,7 @@ export async function POST(req: NextRequest) {
     },
     update: {
       username,
+      ...(phoneValue !== null && phoneValue !== undefined && { phone: phoneValue }),
       bio: bio ?? null,
       favoriteGenres: favoriteGenres ?? [],
       country: country ?? null,

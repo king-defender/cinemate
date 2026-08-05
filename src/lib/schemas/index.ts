@@ -1,6 +1,17 @@
 import { z } from "zod";
 import { PLATFORM_IDS } from "@/lib/platforms";
 
+/** Digits with optional +, spaces, dashes — 8–15 digits after stripping */
+export const phoneSchema = z
+  .string()
+  .trim()
+  .min(8, "Phone number is too short")
+  .max(20, "Phone number is too long")
+  .regex(/^\+?[0-9][0-9\s\-()]{6,18}[0-9]$/, "Enter a valid phone number")
+  .refine((v) => v.replace(/\D/g, "").length >= 8, {
+    message: "Phone must have at least 8 digits",
+  });
+
 export const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -9,6 +20,7 @@ export const registerSchema = z.object({
     .min(3)
     .max(24)
     .regex(/^[a-zA-Z0-9_]+$/, "Username: letters, numbers, underscore only"),
+  phone: phoneSchema,
 });
 
 export const loginSchema = z.object({
@@ -22,6 +34,7 @@ export const completeProfileSchema = z.object({
     .min(3)
     .max(24)
     .regex(/^[a-zA-Z0-9_]+$/),
+  phone: phoneSchema.optional(),
   bio: z.string().max(280).optional(),
   favoriteGenres: z.array(z.string()).max(8).optional(),
   country: z.string().max(56).optional(),
@@ -34,12 +47,12 @@ export const updateProfileSchema = z.object({
     .max(24)
     .regex(/^[a-zA-Z0-9_]+$/)
     .optional(),
+  phone: phoneSchema.nullable().optional(),
   bio: z.string().max(280).nullable().optional(),
   avatarUrl: z.string().url().nullable().optional(),
   favoriteGenres: z.array(z.string()).max(8).optional(),
   country: z.string().max(56).nullable().optional(),
 });
-
 export const createRoomSchema = z.object({
   title: z.string().max(120).optional(),
   platform: z.enum(PLATFORM_IDS).optional(),

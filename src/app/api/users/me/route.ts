@@ -34,6 +34,7 @@ export async function PATCH(req: NextRequest) {
     where: { id: user.id },
     data: {
       ...(parsed.data.username !== undefined && { username: parsed.data.username }),
+      ...(parsed.data.phone !== undefined && { phone: parsed.data.phone }),
       ...(parsed.data.bio !== undefined && { bio: parsed.data.bio }),
       ...(parsed.data.avatarUrl !== undefined && { avatarUrl: parsed.data.avatarUrl }),
       ...(parsed.data.favoriteGenres !== undefined && {

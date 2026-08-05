@@ -15,6 +15,7 @@ model User {
   username       String   @unique
   avatarUrl      String?
   bio            String?
+  phone          String?
   favoriteGenres String[] @default([])
   country        String?
   isGuest        Boolean  @default(false)

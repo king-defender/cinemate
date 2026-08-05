@@ -5,6 +5,7 @@ type JoinRequester = {
   username: string;
   avatarUrl: string | null;
   bio: string | null;
+  phone: string | null;
   favoriteGenres: string[];
   country: string | null;
   isGuest: boolean;
@@ -68,6 +69,7 @@ export function JoinRequestsPanel({
                   )}
                   <p className="mt-2 text-xs text-cream/45">
                     {[
+                      u.phone,
                       u.favoriteGenres.length
                         ? u.favoriteGenres.slice(0, 4).join(" · ")
                         : null,

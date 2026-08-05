@@ -33,30 +33,38 @@ export function ChatPanel({ messages, currentUserId, onSend }: ChatPanelProps) {
   }
 
   return (
-    <div className="flex h-full min-h-[420px] flex-col border border-cream/10 bg-ink-900/80 lg:min-h-[480px]">
-      <div className="border-b border-cream/10 px-4 py-3">
-        <h2 className="font-display text-lg tracking-wide text-cream">Live chat</h2>
+    <div className="glass-card flex h-full min-h-[380px] flex-col overflow-hidden rounded-2xl lg:min-h-[420px]">
+      <div className="border-b border-white/[0.06] px-4 py-3">
+        <h2 className="font-display text-base font-bold tracking-tight">
+          Whisper row
+        </h2>
+        <p className="text-[11px] text-mist">Reactions land here</p>
       </div>
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
         {messages.length === 0 && (
-          <p className="text-sm text-cream/40">Say hi — messages stick around in history.</p>
+          <p className="text-sm text-mist">
+            Say hi — messages stick around in history.
+          </p>
         )}
         {messages.map((m, i) => {
           const mine = m.userId === currentUserId;
           return (
             <div
               key={m.id ?? `${m.createdAt}-${i}`}
-              className={cn("flex flex-col gap-0.5", mine ? "items-end" : "items-start")}
+              className={cn(
+                "flex flex-col gap-0.5",
+                mine ? "items-end" : "items-start",
+              )}
             >
-              <span className="text-[11px] uppercase tracking-wider text-cream/40">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-mist/70">
                 {m.username ?? "viewer"}
               </span>
               <div
                 className={cn(
-                  "max-w-[85%] px-3 py-2 text-sm leading-relaxed",
+                  "max-w-[85%] rounded-2xl px-3 py-2 text-sm leading-relaxed",
                   mine
-                    ? "bg-amber-500 text-ink-950"
-                    : "bg-cream/10 text-cream",
+                    ? "rounded-tr-md bg-mint/20 text-pearl"
+                    : "rounded-tl-md bg-panel-lift text-pearl",
                 )}
               >
                 {m.content}
@@ -69,18 +77,21 @@ export function ChatPanel({ messages, currentUserId, onSend }: ChatPanelProps) {
         })}
         <div ref={bottomRef} />
       </div>
-      <form onSubmit={handleSubmit} className="flex gap-2 border-t border-cream/10 p-3">
+      <form
+        onSubmit={handleSubmit}
+        className="flex gap-2 border-t border-white/[0.06] p-3"
+      >
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Message the room…"
-          className="flex-1 border border-cream/15 bg-ink-950 px-3 py-2 text-sm text-cream placeholder:text-cream/30 focus:border-amber-500/60 focus:outline-none"
+          className="flex-1 rounded-full border border-white/[0.08] bg-void/50 px-4 py-2 text-sm text-pearl placeholder:text-mist/50 focus:border-mint/40 focus:outline-none"
           maxLength={1000}
         />
         <button
           type="submit"
           disabled={sending || !text.trim()}
-          className="bg-amber-500 px-4 py-2 text-sm font-medium text-ink-950 transition hover:bg-amber-400 disabled:opacity-40"
+          className="btn-cinema rounded-full px-4 py-2 text-sm disabled:opacity-40"
         >
           Send
         </button>

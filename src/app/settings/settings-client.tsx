@@ -5,6 +5,7 @@ import { AppNav } from "@/components/app-nav";
 
 type User = {
   username: string;
+  phone: string | null;
   bio: string | null;
   favoriteGenres: string[];
   country: string | null;
@@ -12,6 +13,7 @@ type User = {
 
 export function SettingsClient({ user }: { user: User }) {
   const [username, setUsername] = useState(user.username);
+  const [phone, setPhone] = useState(user.phone ?? "");
   const [bio, setBio] = useState(user.bio ?? "");
   const [genres, setGenres] = useState(user.favoriteGenres.join(", "));
   const [country, setCountry] = useState(user.country ?? "");
@@ -27,6 +29,7 @@ export function SettingsClient({ user }: { user: User }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         username,
+        phone: phone.trim() || null,
         bio: bio || null,
         country: country || null,
         favoriteGenres: genres
@@ -57,6 +60,18 @@ export function SettingsClient({ user }: { user: User }) {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full border border-cream/15 bg-ink-900 px-3 py-2.5 text-cream focus:border-amber-500/50 focus:outline-none"
+            />
+          </label>
+          <label className="block space-y-1.5 text-sm">
+            <span className="text-cream/70">Phone number</span>
+            <input
+              type="tel"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="+91 98765 43210"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              className="w-full border border-cream/15 bg-ink-900 px-3 py-2.5 text-cream placeholder:text-cream/30 focus:border-amber-500/50 focus:outline-none"
             />
           </label>
           <label className="block space-y-1.5 text-sm">

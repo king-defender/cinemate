@@ -71,6 +71,7 @@ export async function POST(_req: NextRequest, { params }: Params) {
       });
 
   const detailBits = [
+    user.phone ?? null,
     user.bio ? user.bio.slice(0, 80) : null,
     user.favoriteGenres.length
       ? user.favoriteGenres.slice(0, 3).join(", ")

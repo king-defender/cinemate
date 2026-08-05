@@ -11,6 +11,7 @@ export default async function SettingsPage() {
     <SettingsClient
       user={{
         username: user.username,
+        phone: user.phone,
         bio: user.bio,
         favoriteGenres: user.favoriteGenres,
         country: user.country,

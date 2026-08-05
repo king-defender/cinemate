@@ -386,175 +386,203 @@ export function RoomView({
 
   if (room.endedAt) {
     return (
-      <div className="mx-auto max-w-lg py-20 text-center">
-        <h1 className="font-display text-3xl text-cream">This room has ended</h1>
-        <p className="mt-2 text-cream/50">Chat is saved in your watch history.</p>
+      <div className="mx-auto max-w-lg px-5 py-24 text-center">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-mist">
+          Curtain call
+        </p>
+        <h1 className="mt-3 font-display text-4xl font-extrabold tracking-tight">
+          This room has ended
+        </h1>
+        <p className="mt-3 text-mist">Chat is saved in your watch history.</p>
       </div>
     );
   }
 
+  const syncLabel =
+    status === "connected"
+      ? "live"
+      : status === "error" || status === "disconnected"
+        ? "sync (backup)"
+        : status;
+  const syncTone =
+    status === "connected"
+      ? "text-mint"
+      : status === "error" || status === "disconnected"
+        ? "text-[#ffb4aa]"
+        : "text-mist";
+
   return (
-    <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 lg:grid-cols-[1fr_320px]">
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-[0.2em] text-amber-400/80">
-              Live room
-              <span
-                className={
-                  status === "connected"
-                    ? "ml-2 text-emerald-400"
-                    : status === "error"
-                      ? "ml-2 text-red-300"
-                      : "ml-2 text-cream/40"
-                }
-              >
-                ·{" "}
-                {status === "connected"
-                  ? "live"
-                  : status === "error" || status === "disconnected"
-                    ? "sync (backup)"
-                    : status}
-              </span>
-            </p>
-            <h1 className="font-display text-3xl tracking-wide text-cream">
-              {room.title ?? "Watch together"}
-            </h1>
+    <div className="relative mx-auto max-w-[1400px] px-4 py-5 md:px-6 lg:px-8">
+      {/* Immersive room header — marquee strip */}
+      <header className="mb-5 flex flex-wrap items-end justify-between gap-4 border-b border-white/[0.06] pb-5">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="inline-flex items-center gap-2 rounded-full bg-ember/15 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-ember">
+              <span className="h-1.5 w-1.5 rounded-full bg-ember sync-pulse" />
+              Theater
+            </span>
+            <span className={`text-[11px] font-semibold uppercase tracking-wider ${syncTone}`}>
+              {syncLabel}
+            </span>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={copyInvite}
-              className="border border-cream/20 px-3 py-1.5 text-sm text-cream/80 hover:border-amber-500/40"
-            >
-              {inviteCopied ? "Copied!" : "Copy invite"}
-            </button>
-            {canControl &&
-              (sharing ? (
-                <button
-                  type="button"
-                  onClick={() => void stopSharing()}
-                  className="border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-sm text-amber-300"
-                >
-                  Stop share
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => void startSharing()}
-                  className="border border-cream/20 px-3 py-1.5 text-sm text-cream/80 hover:border-amber-500/40"
-                >
-                  Share screen
-                </button>
-              ))}
-            {isHost && (
+          <h1 className="mt-2 truncate font-display text-3xl font-extrabold tracking-tight md:text-4xl">
+            {room.title ?? "Watch together"}
+          </h1>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={copyInvite}
+            className="btn-glass rounded-full px-4 py-2 text-sm"
+          >
+            {inviteCopied ? "Copied!" : "Copy invite"}
+          </button>
+          {canControl &&
+            (sharing ? (
               <button
                 type="button"
-                onClick={endRoom}
-                className="border border-red-400/30 px-3 py-1.5 text-sm text-red-300 hover:bg-red-500/10"
+                onClick={() => void stopSharing()}
+                className="rounded-full border border-ember/40 bg-ember/10 px-4 py-2 text-sm text-[#ffb4aa]"
               >
-                End room
+                Stop share
               </button>
-            )}
+            ) : (
+              <button
+                type="button"
+                onClick={() => void startSharing()}
+                className="btn-glass rounded-full px-4 py-2 text-sm"
+              >
+                Share screen
+              </button>
+            ))}
+          {isHost && (
+            <button
+              type="button"
+              onClick={endRoom}
+              className="rounded-full border border-white/10 px-4 py-2 text-sm text-mist transition hover:border-ember/40 hover:text-[#ffb4aa]"
+            >
+              End room
+            </button>
+          )}
+        </div>
+      </header>
+
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
+        {/* Stage column */}
+        <div className="space-y-4">
+          <ControlPanel
+            isHost={isHost}
+            canControl={canControl}
+            controllerName={controllerName}
+            pendingRequest={pendingRequest}
+            requestSent={requestSent}
+            onRequest={() => void requestControl()}
+            onApprove={(id) => void approveControl(id)}
+            onDeny={() => void denyControl()}
+            onReclaim={() => void reclaimControl()}
+          />
+
+          {isHost && (
+            <JoinRequestsPanel
+              requests={joinRequests}
+              onApprove={(id) => void approveJoin(id)}
+              onDeny={(id) => void denyJoin(id)}
+            />
+          )}
+
+          {shareError && <p className="text-sm text-[#ffb4aa]">{shareError}</p>}
+
+          {sharing && !isRelay && (
+            <ScreenShareStage
+              localSharing
+              remoteStream={null}
+              sharerLabel="you"
+            />
+          )}
+
+          {/* Screen as the visual center — soft vignette frame */}
+          <div className="relative">
+            <div
+              className="pointer-events-none absolute -inset-3 rounded-[1.75rem] bg-ember/10 blur-2xl"
+              aria-hidden
+            />
+            <div className="relative overflow-hidden rounded-[1.25rem] border border-white/[0.08] bg-void shadow-[0_30px_80px_rgba(0,0,0,0.55)]">
+              <RoomPlayer
+                canControl={canControl}
+                platform={platform}
+                contentUrl={contentUrl}
+                initial={room.playbackState ?? undefined}
+                remoteState={remoteState}
+                onLocalChange={broadcastPlayback}
+                onVideoElement={handleVideoElement}
+                mediaStream={
+                  !canControl &&
+                  remoteStream &&
+                  !contentUrl?.startsWith("blob:")
+                    ? remoteStream
+                    : null
+                }
+              />
+            </div>
           </div>
-        </div>
 
-        <ControlPanel
-          isHost={isHost}
-          canControl={canControl}
-          controllerName={controllerName}
-          pendingRequest={pendingRequest}
-          requestSent={requestSent}
-          onRequest={() => void requestControl()}
-          onApprove={(id) => void approveControl(id)}
-          onDeny={() => void denyControl()}
-          onReclaim={() => void reclaimControl()}
-        />
-
-        {isHost && (
-          <JoinRequestsPanel
-            requests={joinRequests}
-            onApprove={(id) => void approveJoin(id)}
-            onDeny={(id) => void denyJoin(id)}
-          />
-        )}
-
-        {shareError && (
-          <p className="text-sm text-red-300">{shareError}</p>
-        )}
-
-        {/* Classic screen share preview for the sharer (not player-relay) */}
-        {sharing && !isRelay && (
-          <ScreenShareStage
-            localSharing
-            remoteStream={null}
-            sharerLabel="you"
-          />
-        )}
-
-        {/* Shared URL/sample: both use synced RoomPlayer. Local file: stream only if buddy has no own file. */}
-        <RoomPlayer
-          canControl={canControl}
-          platform={platform}
-          contentUrl={contentUrl}
-          initial={room.playbackState ?? undefined}
-          remoteState={remoteState}
-          onLocalChange={broadcastPlayback}
-          onVideoElement={handleVideoElement}
-          mediaStream={
+          {platform === "local" &&
             !canControl &&
-            remoteStream &&
-            !contentUrl?.startsWith("blob:")
-              ? remoteStream
-              : null
-          }
-        />
+            !contentUrl?.startsWith("blob:") && (
+              <p className="rounded-xl border border-ember/20 bg-ember/5 px-4 py-3 text-sm text-[#ffc9c3]">
+                Host picked a local file. Choose the{" "}
+                <strong>same video</strong> below for matching timeline +
+                controls, or wait for their live stream.
+              </p>
+            )}
 
-        {platform === "local" && !canControl && !contentUrl?.startsWith("blob:") && (
-          <p className="text-sm text-amber-300/90">
-            Host picked a local file. Choose the <strong>same video</strong> below
-            for matching timeline + controls, or wait for their live stream.
-          </p>
-        )}
-
-        <PlatformPicker
-          value={platform}
-          contentUrl={contentUrl}
-          onChange={(id) => void changePlatform(id)}
-          onContentUrlChange={(url) => void changeContentUrl(url)}
-          onLocalFile={loadLocalFile}
-          disabled={false}
-          lockNonLocal={!canControl}
-        />
-
-        <div className="border border-cream/10 bg-ink-900/60 p-4 text-sm text-cream/50">
-          <p className="font-medium text-cream/80">How this works</p>
-          <p className="mt-2 leading-relaxed">
-            Load YouTube or a direct video/.mp4 in the player — both screens play
-            the same file and stay in sync. Local files: pick the same video on
-            each device for full timeline sync (or use the live stream fallback).
-            Guests need host approval to enter. Only the controller drives play/seek.
-          </p>
-        </div>
-      </div>
-
-      <aside className="flex flex-col gap-4 lg:min-h-[560px]">
-        <PresenceList
-          members={members}
-          presence={presence}
-          hostId={room.hostId}
-          currentUserId={currentUser.id}
-          isHost={isHost}
-          onKick={kick}
-        />
-        <div className="min-h-0 flex-1">
-          <ChatPanel
-            messages={messages}
-            currentUserId={currentUser.id}
-            onSend={sendChat}
+          <PlatformPicker
+            value={platform}
+            contentUrl={contentUrl}
+            onChange={(id) => void changePlatform(id)}
+            onContentUrlChange={(url) => void changeContentUrl(url)}
+            onLocalFile={loadLocalFile}
+            disabled={false}
+            lockNonLocal={!canControl}
           />
+
+          <details className="group glass-card rounded-2xl px-4 py-3 text-sm text-mist">
+            <summary className="cursor-pointer list-none font-semibold text-pearl marker:content-none">
+              <span className="flex items-center justify-between">
+                How sync works
+                <span className="text-mist transition group-open:rotate-45">
+                  +
+                </span>
+              </span>
+            </summary>
+            <p className="mt-3 leading-relaxed border-t border-white/[0.06] pt-3">
+              Load YouTube or a direct video/.mp4 — both screens play the same
+              file and stay in sync. Local files: pick the same video on each
+              device for full timeline sync (or use the live stream fallback).
+              Guests need host approval. Only the controller drives play/seek.
+            </p>
+          </details>
         </div>
-      </aside>
+
+        {/* Lounge column — presence + chat */}
+        <aside className="flex flex-col gap-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)]">
+          <PresenceList
+            members={members}
+            presence={presence}
+            hostId={room.hostId}
+            currentUserId={currentUser.id}
+            isHost={isHost}
+            onKick={kick}
+          />
+          <div className="min-h-0 flex-1">
+            <ChatPanel
+              messages={messages}
+              currentUserId={currentUser.id}
+              onSend={sendChat}
+            />
+          </div>
+        </aside>
+      </div>
     </div>
   );
 }

@@ -5,7 +5,13 @@ import { FormEvent, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
-export function LoginForm() {
+type SocialProvider = "google" | "github";
+
+export function LoginForm({
+  socialProviders = [],
+}: {
+  socialProviders?: SocialProvider[];
+}) {
   const router = useRouter();
   const search = useSearchParams();
   const next = search.get("next") ?? "/dashboard";
@@ -32,7 +38,7 @@ export function LoginForm() {
     router.refresh();
   }
 
-  async function oauth(provider: "google" | "github") {
+  async function oauth(provider: SocialProvider) {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider,
@@ -49,7 +55,10 @@ export function LoginForm() {
     const { data, error: err } = await supabase.auth.signInAnonymously();
     if (err || !data.user) {
       setLoading(false);
-      setError(err?.message ?? "Guest sign-in failed — enable Anonymous in Supabase Auth");
+      setError(
+        err?.message ??
+          "Guest sign-in failed — enable Anonymous in Supabase Auth",
+      );
       return;
     }
     const username = `guest_${data.user.id.slice(0, 6)}`;
@@ -63,68 +72,77 @@ export function LoginForm() {
     router.refresh();
   }
 
+  const labels: Record<SocialProvider, string> = {
+    google: "Google",
+    github: "GitHub",
+  };
+
   return (
-    <div className="mx-auto w-full max-w-md space-y-6">
+    <div className="glass-card mx-auto w-full max-w-md space-y-6 rounded-2xl p-6 md:p-8">
       <div>
-        <h1 className="font-display text-4xl tracking-wide text-cream">Welcome back</h1>
-        <p className="mt-2 text-cream/55">Log in to host rooms or join your buddy.</p>
+        <h1 className="font-display text-4xl font-extrabold tracking-tight text-foreground">
+          Welcome back
+        </h1>
+        <p className="mt-2 text-muted">
+          Log in to host rooms or join your buddy.
+        </p>
       </div>
       <form onSubmit={onSubmit} className="space-y-4">
         <label className="block space-y-1.5 text-sm">
-          <span className="text-cream/70">Email</span>
+          <span className="text-muted">Email</span>
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border border-cream/15 bg-ink-900 px-3 py-2.5 text-cream focus:border-amber-500/50 focus:outline-none"
+            className="w-full rounded-lg border border-white/10 bg-surface-low px-3 py-2.5 text-foreground focus:border-cinema-red/50 focus:outline-none"
           />
         </label>
         <label className="block space-y-1.5 text-sm">
-          <span className="text-cream/70">Password</span>
+          <span className="text-muted">Password</span>
           <input
             type="password"
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border border-cream/15 bg-ink-900 px-3 py-2.5 text-cream focus:border-amber-500/50 focus:outline-none"
+            className="w-full rounded-lg border border-white/10 bg-surface-low px-3 py-2.5 text-foreground focus:border-cinema-red/50 focus:outline-none"
           />
         </label>
         {error && <p className="text-sm text-red-300">{error}</p>}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-amber-500 py-2.5 font-medium text-ink-950 hover:bg-amber-400 disabled:opacity-50"
+          className="btn-cinema w-full rounded-xl py-2.5 disabled:opacity-50"
         >
           {loading ? "Signing in…" : "Log in"}
         </button>
       </form>
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => oauth("google")}
-          className="flex-1 border border-cream/15 py-2 text-sm text-cream/80 hover:border-cream/30"
-        >
-          Google
-        </button>
-        <button
-          type="button"
-          onClick={() => oauth("github")}
-          className="flex-1 border border-cream/15 py-2 text-sm text-cream/80 hover:border-cream/30"
-        >
-          GitHub
-        </button>
-      </div>
+
+      {socialProviders.length > 0 && (
+        <div className="flex gap-2">
+          {socialProviders.map((provider) => (
+            <button
+              key={provider}
+              type="button"
+              onClick={() => void oauth(provider)}
+              className="btn-glass flex-1 rounded-xl py-2 text-sm"
+            >
+              {labels[provider]}
+            </button>
+          ))}
+        </div>
+      )}
+
       <button
         type="button"
-        onClick={guestJoin}
-        className="w-full text-sm text-cream/50 underline-offset-2 hover:text-cream hover:underline"
+        onClick={() => void guestJoin()}
+        className="w-full text-sm text-muted underline-offset-2 hover:text-foreground hover:underline"
       >
         Continue as guest
       </button>
-      <p className="text-sm text-cream/45">
+      <p className="text-sm text-muted">
         New here?{" "}
-        <Link href="/register" className="text-amber-400 hover:text-amber-300">
+        <Link href="/register" className="font-semibold text-cinema-red hover:underline">
           Create an account
         </Link>
       </p>
