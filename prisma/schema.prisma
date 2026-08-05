@@ -1,0 +1,164 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id             String   @id @default(uuid())
+  email          String   @unique
+  emailVerified  Boolean  @default(false)
+  username       String   @unique
+  avatarUrl      String?
+  bio            String?
+  favoriteGenres String[] @default([])
+  country        String?
+  isGuest        Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  roomsHosted     Room[]             @relation("HostedRooms")
+  roomMemberships RoomMember[]
+  joinRequests    RoomJoinRequest[]
+  buddyRequests   BuddyRequest[]     @relation("Requester")
+  badges          UserBadge[]
+  communities     CommunityMember[]
+  chatMessages    ChatMessage[]
+  notifications   Notification[]
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  body      String?
+  href      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, read, createdAt])
+}
+
+model Room {
+  id           String    @id @default(uuid())
+  hostId       String
+  host         User      @relation("HostedRooms", fields: [hostId], references: [id])
+  inviteCode   String    @unique
+  title        String?
+  platform     String?
+  contentUrl   String?
+  /** Who may control playback / screen share. Defaults to host. */
+  controllerId String?
+  isBuddyMatch Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  endedAt      DateTime?
+
+  members       RoomMember[]
+  joinRequests  RoomJoinRequest[]
+  messages      ChatMessage[]
+  playbackState RoomPlaybackState?
+}
+
+model RoomMember {
+  roomId   String
+  userId   String
+  joinedAt DateTime @default(now())
+  room     Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+}
+
+model RoomJoinRequest {
+  id         String    @id @default(uuid())
+  roomId     String
+  room       Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status     String    @default("pending") // pending | approved | denied
+  createdAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  @@unique([roomId, userId])
+  @@index([roomId, status])
+}
+
+model RoomPlaybackState {
+  roomId          String   @id
+  room            Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  positionSeconds Float    @default(0)
+  isPlaying       Boolean  @default(false)
+  speed           Float    @default(1.0)
+  updatedBy       String
+  updatedAt       DateTime @updatedAt
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  roomId    String
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String
+  reaction  String?
+  createdAt DateTime @default(now())
+
+  @@index([roomId, createdAt])
+}
+
+model BuddyRequest {
+  id            String   @id @default(uuid())
+  requesterId   String
+  requester     User     @relation("Requester", fields: [requesterId], references: [id])
+  tags          String[] @default([])
+  status        String   @default("open") // open | matched | cancelled
+  createdAt     DateTime @default(now())
+  matchedRoomId String?
+
+  @@index([status, createdAt])
+}
+
+model Badge {
+  id          String      @id @default(uuid())
+  name        String      @unique
+  description String
+  users       UserBadge[]
+}
+
+model UserBadge {
+  userId    String
+  badgeId   String
+  awardedAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@id([userId, badgeId])
+}
+
+model Community {
+  id      String            @id @default(uuid())
+  name    String            @unique
+  genre   String
+  members CommunityMember[]
+}
+
+model CommunityMember {
+  communityId String
+  userId      String
+  joinedAt    DateTime  @default(now())
+  community   Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([communityId, userId])
+}
+
+model RateLimit {
+  id        String   @id
+  count     Int      @default(0)
+  windowStart DateTime @default(now())
+}

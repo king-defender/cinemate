@@ -1,65 +1,62 @@
-import Image from "next/image";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getAppUser } from "@/lib/auth";
+import { AppNav } from "@/components/app-nav";
 
-export default function Home() {
+export default async function HomePage() {
+  const user = await getAppUser();
+  if (user) redirect("/dashboard");
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+    <>
+      <AppNav />
+      <main className="relative flex flex-1 flex-col">
+        <section className="relative flex min-h-[calc(100vh-3.5rem)] flex-col justify-end overflow-hidden px-6 pb-16 pt-24 md:px-12 md:pb-24">
+          <div
+            className="absolute inset-0 bg-[radial-gradient(ellipse_at_70%_20%,rgba(212,160,23,0.18),transparent_50%),radial-gradient(ellipse_at_10%_80%,rgba(243,235,224,0.06),transparent_40%),linear-gradient(180deg,#0c0b0a_0%,#161412_55%,#0c0b0a_100%)]"
+            aria-hidden
+          />
+          <div
+            className="animate-glow absolute -right-20 top-10 h-[420px] w-[420px] rounded-full bg-amber-500/20 blur-3xl"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.07]"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(0deg, transparent, transparent 2px, #f3ebe0 2px, #f3ebe0 3px)",
+            }}
+            aria-hidden
+          />
+
+          <div className="relative z-10 mx-auto w-full max-w-5xl">
+            <p className="animate-fade-up font-display text-6xl leading-none tracking-[0.12em] text-amber-400 sm:text-8xl md:text-9xl">
+              CineMate
+            </p>
+            <h1 className="animate-fade-up-delay mt-4 max-w-xl font-display text-3xl tracking-wide text-cream sm:text-4xl">
+              Watch together, no matter where you are.
+            </h1>
+            <p className="animate-fade-up-delay mt-4 max-w-md text-base leading-relaxed text-cream/60 sm:text-lg">
+              Create a room, sync playback with friends, chat live, and build a
+              history of everything you&apos;ve watched together.
+            </p>
+            <div className="animate-fade-up-delay mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/register"
+                className="bg-amber-500 px-6 py-3 text-sm font-semibold text-ink-950 transition hover:bg-amber-400"
+              >
+                Start watching
+              </Link>
+              <Link
+                href="/login"
+                className="border border-cream/25 px-6 py-3 text-sm text-cream/80 transition hover:border-cream/50 hover:text-cream"
+              >
+                Log in
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
-    </div>
+    </>
   );
 }

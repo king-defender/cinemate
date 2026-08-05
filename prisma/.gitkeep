@@ -1,0 +1,5 @@
+# Created by Prisma — set DATABASE_URL in .env / .env.local
+# Prisma reads .env by default (not .env.local). For local work, copy DB URLs into .env as well.
+
+# Environment variables declared in this file are NOT automatically loaded by Next.js.
+# Use .env.local for Next.js; keep DATABASE_URL / DIRECT_URL in .env for Prisma CLI.

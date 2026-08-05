@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CineMate
 
-## Getting Started
+Watch together — synced playback, live chat, movie buddy matching.
 
-First, run the development server:
+Built from the product docs in the parent `moviePlatform` folders (FRS, architecture, schema, build plan).
+
+## Stack
+
+- **Next.js 16** (App Router) + TypeScript + Tailwind
+- **Supabase** — Auth, Postgres, Realtime
+- **Prisma** — schema + migrations
+- **Vercel** — hosting (Hobby / free)
+
+## Quick start
+
+1. Create a [Supabase](https://supabase.com) project.
+2. Copy env vars:
+
+```bash
+cp .env.example .env.local
+```
+
+Fill in `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, and `DIRECT_URL` (from Supabase → Settings → API / Database).
+
+3. Enable in Supabase Auth:
+   - Email (confirmations on)
+   - Google / GitHub providers (optional)
+   - **Anonymous sign-ins** (for guest mode)
+
+4. Migrate + seed:
+
+```bash
+npm install
+npx prisma migrate dev --name init
+npx prisma db seed
+```
+
+5. In the Supabase SQL editor, run `prisma/rls.sql`.
+
+6. Add Auth redirect URLs:
+   - `http://localhost:3000/auth/callback`
+   - your Vercel URL + `/auth/callback`
+
+7. Run the app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## What's included (Phases 1–3)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Feature | Status |
+|---|---|
+| Email/password + Google/GitHub + guest | ✅ |
+| Profile view/edit | ✅ |
+| Private rooms + invite links | ✅ |
+| Playback sync (demo video) | ✅ |
+| Real-time chat (persisted) | ✅ |
+| Watch history | ✅ |
+| Movie buddy matching | ✅ |
+| Badges (First Watch, Host Debut, 10 Rooms) | ✅ |
+| Genre communities | ✅ |
+| Webcam / WebRTC mesh | Deferred (signaling hook ready on room channel) |
 
-## Learn More
+Content source integration is intentionally out of scope — the room player uses a public sample clip so you can test sync with 2+ browser tabs.
 
-To learn more about Next.js, take a look at the following resources:
+## Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `npm run dev` — local server
+- `npm run build` — production build
+- `npx prisma migrate dev` — apply schema
+- `npx prisma db seed` — communities + badges
+- `npx prisma studio` — browse data
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Docs map
 
-## Deploy on Vercel
+Product/engineering docs live one level up:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `../00-foundation/README.md` — vision & scope
+- `../14-project-management/build-plan.md` — module order
+- `../03-system-design/architecture.md` — realtime decision
