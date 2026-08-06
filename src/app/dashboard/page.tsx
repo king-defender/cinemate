@@ -1,38 +1,86 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { Prisma } from "@prisma/client";
 import { AppNav } from "@/components/app-nav";
 import { getAppUser, canHostOrBuddy } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+type ActiveRoomMember = Prisma.RoomMemberGetPayload<{
+  include: {
+    room: {
+      include: {
+        host: { select: { username: true } };
+        _count: { select: { members: true } };
+      };
+    };
+  };
+}>;
+
+type RecentBuddyRequest = Prisma.BuddyRequestGetPayload<{
+  include: {
+    requester: {
+      select: { username: true; bio: true; favoriteGenres: true };
+    };
+  };
+}>;
+
 export default async function DashboardPage() {
-  const user = await getAppUser();
+  let user;
+  try {
+    user = await getAppUser();
+  } catch (err) {
+    console.error("[dashboard] getAppUser failed:", err);
+    return (
+      <main className="mx-auto flex max-w-lg flex-1 flex-col justify-center px-5 py-20 text-center">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-ember">
+          Database
+        </p>
+        <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight">
+          Can&apos;t reach the database
+        </h1>
+        <p className="mt-3 text-sm text-mist">
+          On Vercel, set <code className="text-pearl">DATABASE_URL</code> to the
+          Supabase <strong>shared pooler</strong> (IPv4), not{" "}
+          <code className="text-pearl">db.*.supabase.co</code>. Then redeploy.
+        </p>
+      </main>
+    );
+  }
   if (!user) redirect("/login");
 
-  const [activeRooms, openBuddies, recentBuddy] = await Promise.all([
-    prisma.roomMember.findMany({
-      where: { userId: user.id, room: { endedAt: null } },
-      include: {
-        room: {
-          include: {
-            host: { select: { username: true } },
-            _count: { select: { members: true } },
+  let activeRooms: ActiveRoomMember[] = [];
+  let openBuddies = 0;
+  let recentBuddy: RecentBuddyRequest[] = [];
+
+  try {
+    [activeRooms, openBuddies, recentBuddy] = await Promise.all([
+      prisma.roomMember.findMany({
+        where: { userId: user.id, room: { endedAt: null } },
+        include: {
+          room: {
+            include: {
+              host: { select: { username: true } },
+              _count: { select: { members: true } },
+            },
           },
         },
-      },
-      take: 8,
-    }),
-    prisma.buddyRequest.count({ where: { status: "open" } }),
-    prisma.buddyRequest.findMany({
-      where: { status: "open", requesterId: { not: user.id } },
-      include: {
-        requester: {
-          select: { username: true, bio: true, favoriteGenres: true },
+        take: 8,
+      }),
+      prisma.buddyRequest.count({ where: { status: "open" } }),
+      prisma.buddyRequest.findMany({
+        where: { status: "open", requesterId: { not: user.id } },
+        include: {
+          requester: {
+            select: { username: true, bio: true, favoriteGenres: true },
+          },
         },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 4,
-    }),
-  ]);
+        orderBy: { createdAt: "desc" },
+        take: 4,
+      }),
+    ]);
+  } catch (err) {
+    console.error("[dashboard] query failed:", err);
+  }
 
   const verified = canHostOrBuddy(user);
   const featured = activeRooms[0];
