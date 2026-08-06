@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
+    "dev": "node api.js && next dev",
+    "build": "node api.js && prisma generate && next build",
     "postinstall": "prisma generate",
-    "start": "next start",
+    "start": "node api.js && next start",
     "lint": "eslint",
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
